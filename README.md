@@ -79,7 +79,7 @@ assessment for Web3 full-stack development.
 
      But that still didnt fix it! The blocks were still not showing up after restart. Turned out there was another issue hiding behind this one.
 
-    6. JavaScript Object Reference Bug
+  6. JavaScript Object Reference Bug
      This one really taught me something. So even after awaiting initializeBlockchain() properly, the controllers were still serving the old 1-block chain. The problem was in how JavaScript destructuring works with getters.
 
      Every controller did `const { blockchain } = require('../models')`. This runs the getter once at import time and stores the value. Its not a live connection to the getter. So when initializeBlockchain() later did `blockchain = restored`, it replaced the module variable with a new object but all the controllers were still holding the OLD object reference.
