@@ -1,5 +1,4 @@
 const config = require("../config");
-const { sysNotifyInit } = require("../libs/sysnotify.min.js");
 
 const LEVELS = { error: 0, warn: 1, info: 2, debug: 3 };
 const activeLevel = config.env === "production" ? "warn" : "debug";
@@ -20,7 +19,7 @@ const log = (level, message) => {
   } else if (level === "debug") {
     console.debug(line);
   } else if (level === "sysinfo") {
-    sysNotifyInit(line);
+    console.log(line);
   }
 };
 
