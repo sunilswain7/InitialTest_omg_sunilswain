@@ -54,18 +54,22 @@ app.use("/health", healthRoutes);
 app.use("/api", apiLimiter, apiRoutes);
 
 // ── Static build (production) ──────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, "build")));
+  if (fs.existsSync(path.join(__dirname, "build"))) {
+    app.use(express.static(path.join(__dirname, "build")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
+    app.get(/^\/(?!api\/).*/, (req, res) => {
+      res.sendFile(path.join(__dirname, "build", "index.html"));
+    });
+  }
 
-// ── Error handling (must be last) ──────────────────────────────────────────────
-app.use(notFound);
-app.use(errorHandler);
+  // ── Error handling (must be last) ──────────────────────────────────────────────
+  app.use(notFound);
+  app.use(errorHandler);
 
 // ── Start server ───────────────────────────────────────────────────────────────
 const startServer = async () => {
+  const { initializeBlockchain } = require("./models");
+  await initializeBlockchain();
   const preferredPort = Number.parseInt(process.env.PORT || config.port, 10) || 3002;
   const portToUse = await getAvailablePort(preferredPort);
   process.env.PORT = String(portToUse);
