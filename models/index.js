@@ -31,7 +31,10 @@ const initializeBlockchain = async () => {
   const restored = await persistenceService.load();
 
   if (restored) {
-    blockchain = restored;
+    blockchain.chain = restored.chain;
+    blockchain.pendingTransactions = restored.pendingTransactions;
+    blockchain.difficulty = restored.difficulty;
+    blockchain.miningReward = restored.miningReward;
     logger.info('Loaded persisted blockchain state');
     return;
   }
@@ -42,7 +45,7 @@ const initializeBlockchain = async () => {
   }
 };
 
-initializeBlockchain();
+
 
 module.exports = {
   get blockchain() {
@@ -51,4 +54,5 @@ module.exports = {
   Blockchain,
   Block,
   Transaction,
+  initializeBlockchain,
 };
