@@ -4,3 +4,5 @@
 *.log
 npm-debug.log*
 blockchain.json
+out/
+cache/
