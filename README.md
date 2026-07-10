@@ -88,46 +88,45 @@ assessment for Web3 full-stack development.
 
      Fix: Instead of replacing the object (`blockchain = restored`), we mutate the existing one (`blockchain.chain = restored.chain`, `blockchain.pendingTransactions = restored.pendingTransactions` etc). Now every controller sees the update because they all point to the same object.
 
-    7. Nodemon Restart Loop
+  7. Nodemon Restart Loop
      Every time a block was mined, persistenceService.save() wrote to blockchain.json. Nodemon was watching all files by default so it detected the change and restarted the server. Combined with the Block import bug (#3), this meant mining a block would crash the server.
      Fix: Added `--ignore blockchain.json` to the nodemon dev script in package.json.
 
-    8. Server Routing Order
+  8. Server Routing Order
      The SPA catch-all `app.get("*")` was registered before the notFound middleware. So every unmatched GET request including bad API routes like /api/nonexistent got served index.html instead of a proper 404 JSON error. The notFound middleware was basically dead code.
      Fix: Wrapped static serving in a check for the build/ directory existing, and used a regex that excludes /api/ routes from the catch-all so API 404s return proper JSON errors.
 
-    9. Transaction Signing Flow was completely broken
+  9. Transaction Signing Flow was completely broken
      The blockchain model required every transaction to be cryptographically signed with ECDSA (secp256k1). The isValid() function used crypto.verify() to check signatures. But the frontend was just sending raw strings with no signature at all. Every transaction from the UI was rejected.
      Fix: Created a new endpoint POST /api/transactions/signed that takes a private key and transaction details, derives the public address from the private key, signs the transaction server-side, and adds it to the chain. Updated the TransactionForm component to accept a private key instead of a from-address.
 
-    10. Broken Tests
+  10. Broken Tests
      Both tests in the test file were failing. First test had a regex that didnt match the actual error message. Second test was using a fake signature string 'signature-placeholder' which obviously failed cryptographic verification.
      Fix: Fixed the regex, replaced fake signatures with real key pair generation and proper signing using crypto.generateKeyPairSync and signTransaction().
 
-    ## Smart Contract Fixes
+  ## Smart Contract Fixes
 
-    11. Missing Zero-Address Checks
+   11. Missing Zero-Address Checks
      transfer() and transferFrom() allowed sending tokens to address(0). Tokens sent there are permanently lost but totalSupply doesnt decrease which breaks the accounting.
      Fix: Added require(to != address(0)) in transfer and both from and to checks in transferFrom.
 
-    12. ERC-20 Approve Race Condition
+  12. ERC-20 Approve Race Condition
      The approve() function had a classic front-running vulnerability. If Alice approves Bob for 100 then tries to change it to 50, Bob can front-run the second tx spending the original 100 first, then spend the new 50 after. Thats 150 tokens stolen instead of 100.
      Fix: Added increaseAllowance() and decreaseAllowance() functions that modify the allowance relative to the current value instead of replacing it entirely.
 
-    ## Other Improvements
+  ## Other Improvements
 
-    13. Replaced Hardhat with Foundry for smart contract tooling. The original deploy script used Hardhat but no hardhat.config.js existed so it couldnt even run. Set up Foundry with foundry.toml, a deploy script, and 9 test cases covering transfers approvals allowance management and error conditions.
+  13. Replaced Hardhat with Foundry for smart contract tooling. The original deploy script used Hardhat but no hardhat.config.js existed so it couldnt even run. Set up Foundry with foundry.toml, a deploy script, and 9 test cases covering transfers approvals allowance management and error conditions.
 
-    14. Created .env.example since the README told users to cp .env.example .env but the file didnt exist.
+  14. Created .env.example since the README told users to cp .env.example .env but the file didnt exist.
 
-    15. Removed the root blockchain.js file that was a one-line shim not imported anywhere.
+  15. Removed the root blockchain.js file that was a one-line shim not imported anywhere.
 
-    16. Added blockchain.json and Foundry build artifacts to .gitignore.
+  16. Added blockchain.json and Foundry build artifacts to .gitignore.
 
-    ## Known Limitations
+  ## Known Limitations
 
-    - This is a simplified educational blockchain not a production distributed ledger
-    - Transaction signing is done server-side for demo purposes. In production private keys should never leave the client, youd use something like
-  MetaMask
-    - Persistence uses a single JSON file, a real system would use a database
-    - No peer-to-peer networking or consensus between nodes
+  - This is a simplified educational blockchain not a production distributed ledger
+  - Transaction signing is done server-side for demo purposes. In production private keys should never leave the client, youd use something like MetaMask
+  - Persistence uses a single JSON file, a real system would use a database
+  - No peer-to-peer networking or consensus between nodes
