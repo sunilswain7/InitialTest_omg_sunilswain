@@ -16,6 +16,9 @@ export const fetchAllTransactions = () =>
 export const addTransaction = (fromAddress, toAddress, amount, signature = '') =>
   client.post(ENDPOINTS.TRANSACTIONS, { fromAddress, toAddress, amount, signature });
 
+export const addSignedTransaction = (privateKey, toAddress, amount) =>
+    client.post(ENDPOINTS.TRANSACTIONS_SIGNED, { privateKey, toAddress, amount });
+
 export const createWallet = () => client.post(ENDPOINTS.WALLETS);
 
 export const mineBlock = (miningRewardAddress = 'miner1') =>

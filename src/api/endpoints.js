@@ -6,6 +6,7 @@ const ENDPOINTS = {
   TRANSACTIONS: `${BASE}/transactions`,
   TRANSACTIONS_PENDING: `${BASE}/transactions/pending`,
   TRANSACTIONS_ALL: `${BASE}/transactions/all`,
+  TRANSACTIONS_SIGNED: `${BASE}/transactions/signed`,
   MINE: `${BASE}/mine`,
   STATS: `${BASE}/stats`,
   WALLETS: `${BASE}/wallets`,
