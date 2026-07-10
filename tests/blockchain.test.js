@@ -24,20 +24,24 @@ test('rejects unsigned transactions', () => {
   const chain = new Blockchain(1, 10);
   const tx = new Transaction('wallet-a', 'wallet-b', 25);
 
-  assert.throws(() => chain.addTransaction(tx), /signature/i);
+  assert.throws(() => chain.addTransaction(tx), /unsigned|invalid/i);
 });
 
 test('persists and restores blockchain state', async () => {
-  const chain = new Blockchain(1, 10);
-  const tx = new Transaction('wallet-a', 'wallet-b', 25);
-  tx.signature = 'signature-placeholder';
-  chain.addTransaction(tx);
+    const crypto = require('crypto');
+    const chain = new Blockchain(1, 10);
 
-  await persistenceService.save(chain);
-  const restored = await persistenceService.load();
+    const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'secp256k1' });
+    const tx = new Transaction('', 'wallet-b', 25);
+    tx.signTransaction(privateKey);
 
-  assert.ok(restored);
-  assert.equal(restored.chain.length, 1);
-  assert.equal(restored.pendingTransactions.length, 1);
-  assert.equal(restored.pendingTransactions[0].amount, 25);
-});
+    chain.addTransaction(tx);
+
+    await persistenceService.save(chain);
+    const restored = await persistenceService.load();
+
+    assert.ok(restored);
+    assert.equal(restored.chain.length, 1);
+    assert.equal(restored.pendingTransactions.length, 1);
+    assert.equal(restored.pendingTransactions[0].amount, 25);
+  });
