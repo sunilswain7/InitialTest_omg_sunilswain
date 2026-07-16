@@ -14,10 +14,29 @@ const seedDemoData = () => {
     return;
   }
 
+  // Each named demo participant gets a real keypair. Senders must hold funds
+  // before their transfers pass the balance check, so every distinct sender
+  // is funded with one mining reward up front.
+  const wallets = {};
+  const walletFor = (name) => {
+    if (!wallets[name]) {
+      const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'secp256k1' });
+      wallets[name] = {
+        privateKey,
+        address: publicKey.export({ type: 'spki', format: 'der' }).toString('hex'),
+      };
+    }
+    return wallets[name];
+  };
+
+  const senders = new Set(config.demoData.transactions.map((tx) => tx.from));
+  for (const sender of senders) {
+    blockchain.minePendingTransactions(walletFor(sender).address);
+  }
+
   for (const { from, to, amount } of config.demoData.transactions) {
-    const demoTx = new Transaction(from, to, amount);
-    const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'secp256k1' });
-    demoTx.signTransaction(privateKey);
+    const demoTx = new Transaction(walletFor(from).address, walletFor(to).address, amount);
+    demoTx.signTransaction(walletFor(from).privateKey);
     blockchain.addTransaction(demoTx);
   }
 
@@ -40,7 +59,7 @@ const initializeBlockchain = async () => {
   }
 
   seedDemoData();
-  if (blockchain.pendingTransactions.length > 0) {
+  if (blockchain.chain.length > 1 || blockchain.pendingTransactions.length > 0) {
     await persistenceService.save(blockchain);
   }
 };

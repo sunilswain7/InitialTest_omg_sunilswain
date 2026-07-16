@@ -26,7 +26,11 @@ const addTransaction = (req, res, next) => {
       transaction.signature = signature;
     }
 
-    blockchain.addTransaction(transaction);
+    try {
+      blockchain.addTransaction(transaction);
+    } catch (domainErr) {
+      return sendError(res, domainErr.message, 400);
+    }
     persistenceService.save(blockchain);
 
     sendCreated(res, {
@@ -76,7 +80,11 @@ const createSignedTransaction = (req, res, next) => {
       );
       transaction.signTransaction(keyObject);
 
-      blockchain.addTransaction(transaction);
+      try {
+        blockchain.addTransaction(transaction);
+      } catch (domainErr) {
+        return sendError(res, domainErr.message, 400);
+      }
       persistenceService.save(blockchain);
 
       sendCreated(res, {

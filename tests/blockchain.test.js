@@ -27,12 +27,28 @@ test('rejects unsigned transactions', () => {
   assert.throws(() => chain.addTransaction(tx), /unsigned|invalid/i);
 });
 
+test('rejects transactions that exceed the sender balance', () => {
+  const crypto = require('crypto');
+  const chain = new Blockchain(1, 10);
+
+  const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'secp256k1' });
+  const tx = new Transaction('', 'wallet-b', 25);
+  tx.signTransaction(privateKey);
+
+  assert.throws(() => chain.addTransaction(tx), /insufficient/i);
+});
+
 test('persists and restores blockchain state', async () => {
     const crypto = require('crypto');
     const chain = new Blockchain(1, 10);
 
-    const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'secp256k1' });
-    const tx = new Transaction('', 'wallet-b', 25);
+    const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'secp256k1' });
+    const address = publicKey.export({ type: 'spki', format: 'der' }).toString('hex');
+
+    // fund the sender with one mining reward (10) so the transfer passes the balance check
+    chain.minePendingTransactions(address);
+
+    const tx = new Transaction(address, 'wallet-b', 5);
     tx.signTransaction(privateKey);
 
     chain.addTransaction(tx);
@@ -41,7 +57,7 @@ test('persists and restores blockchain state', async () => {
     const restored = await persistenceService.load();
 
     assert.ok(restored);
-    assert.equal(restored.chain.length, 1);
+    assert.equal(restored.chain.length, 2);
     assert.equal(restored.pendingTransactions.length, 1);
-    assert.equal(restored.pendingTransactions[0].amount, 25);
+    assert.equal(restored.pendingTransactions[0].amount, 5);
   });

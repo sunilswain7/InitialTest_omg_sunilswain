@@ -141,6 +141,13 @@ class Blockchain {
       throw new Error('Cannot add unsigned or invalid transaction to chain');
     }
 
+    if (transaction.fromAddress !== null) {
+      const balance = this.getEffectiveBalance(transaction.fromAddress);
+      if (balance < transaction.amount) {
+        throw new Error('Insufficient balance');
+      }
+    }
+
     this.pendingTransactions.push(transaction);
   }
 
@@ -152,6 +159,17 @@ class Blockchain {
         if (trans.fromAddress === address) balance -= trans.amount;
         if (trans.toAddress === address) balance += trans.amount;
       }
+    }
+
+    return balance;
+  }
+
+  getEffectiveBalance(address) {
+    let balance = this.getBalanceOfAddress(address);
+
+    for (const tx of this.pendingTransactions) {
+      if (tx.fromAddress === address) balance -= tx.amount;
+      if (tx.toAddress === address) balance += tx.amount;
     }
 
     return balance;

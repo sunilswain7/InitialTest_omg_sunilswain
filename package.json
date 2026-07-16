@@ -10,6 +10,7 @@
     "build": "react-scripts build",
     "serve": "npm run build && npm run server",
     "prod": "npm run serve",
+    "test": "node --test tests/blockchain.test.js",
     "lint": "eslint src --ext .js,.jsx"
   },
   "keywords": [
