@@ -2,7 +2,7 @@ require('dotenv').config();
 
 module.exports = {
   env: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT, 10) || 3002,
+  port: parseInt(process.env.API_PORT, 10) || 3002,
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   blockchain: {
     difficulty: parseInt(process.env.BLOCKCHAIN_DIFFICULTY, 10) || 2,

@@ -5,4 +5,6 @@
 npm-debug.log*
 blockchain.json
 out/
-cache/lib/
+cache/
+.server-port
+NOTES.md

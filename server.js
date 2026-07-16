@@ -70,9 +70,8 @@ app.use("/api", apiLimiter, apiRoutes);
 const startServer = async () => {
   const { initializeBlockchain } = require("./models");
   await initializeBlockchain();
-  const preferredPort = Number.parseInt(process.env.PORT || config.port, 10) || 3002;
+  const preferredPort = Number.parseInt(process.env.API_PORT || config.port, 10) || 3002;
   const portToUse = await getAvailablePort(preferredPort);
-  process.env.PORT = String(portToUse);
   writePortFile(portToUse);
 
   const server = app.listen(portToUse, () => {

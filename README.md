@@ -3,6 +3,37 @@
 A full-stack blockchain demo combining an Express backend, a React-based explorer, and a Solidity ERC-20 token contract. Built as a technical
 assessment for Web3 full-stack development.
 
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+- Foundry (only for the smart contract part) — install from https://getfoundry.sh
+
+### Install and Run
+
+```bash
+npm install
+cp .env.example .env
+
+# Terminal 1 — API server (port 3002, auto-reloads on save)
+npm run dev
+
+# Terminal 2 — React dev server (port 3000)
+npm start
+```
+
+Then open http://localhost:3000 in the browser.
+
+Start the API server **before** the React app. The React dev server proxies all `/api` requests to the backend automatically — the API writes its actual port to a `.server-port` file and the proxy reads it once at startup, so if the API is not running yet the proxy falls back to the default `http://localhost:3002`. If port 3002 is busy the API automatically picks the next free port.
+
+### Run the backend tests
+
+```bash
+npm test
+```
+
 ## Usage
 
   | Action | How |
@@ -16,7 +47,7 @@ assessment for Web3 full-stack development.
 
   ### Transaction Flow
 
-  1. Generate a wallet — you get a public key (your address) and a private key (PEM format as if we give in same base64 format as the public address we would anyway require to convert it to the pem format for the function to generate the )
+  1. Generate a wallet — you get a public key (your address) and a private key (PEM format — the signing function needs a PEM key, if we handed it out in the same hex format as the address we would just have to convert it back to PEM anyway)
   2. Copy the private key and paste it in the transaction form
   3. Enter the recipient address and amount
   4. Click **Sign & Send Transaction** — the server derives your address from the private key, signs the transaction with ECDSA (secp256k1), and adds it
@@ -42,7 +73,7 @@ assessment for Web3 full-stack development.
 
   ## Smart Contract
 
-  The `AssessmentToken.sol` contract is in `contracts/`. Built and tested with Foundry.
+  The `AssessmentToken.sol` contract is in `contracts/`. Built and tested with Foundry. The `forge-std` test library is included in `lib/` so the commands below work right after cloning, no `forge install` needed.
 
   ```bash
   # Build
@@ -123,6 +154,15 @@ assessment for Web3 full-stack development.
   15. Removed the root blockchain.js file that was a one-line shim not imported anywhere.
 
   16. Added blockchain.json and Foundry build artifacts to .gitignore.
+
+  17. Insufficient balance validation
+     Originally any signed transaction was accepted even if the sender had zero funds, so you could spend coins you never had. Now addTransaction checks the senders effective balance (confirmed balance minus the amounts already committed in pending transactions) and rejects the transaction with a clear error if it doesnt cover the amount. The demo seed data now mines a reward block to each demo sender first so they actually have funds to send.
+
+  18. Dev setup port collision
+     The .env file used a PORT variable for the API server, but react-scripts also reads PORT from .env, so the React dev server was grabbing the APIs port 3002 instead of starting on 3000. On top of that the runtime .server-port file was committed to git, so the proxy could read a stale port from a fresh clone and point at the wrong server. Renamed the backend variable to API_PORT, removed .server-port from version control, and documented the startup order.
+
+  19. Vendored forge-std
+     The Foundry test library lives in lib/forge-std but it was never committed, so forge test failed on a fresh clone with "forge-std/Test.sol not found". Its now included in the repo so the contract tests run straight after cloning.
 
   ## Known Limitations
 
